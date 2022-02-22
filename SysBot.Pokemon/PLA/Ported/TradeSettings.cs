@@ -43,7 +43,7 @@ namespace SysBot.Pokemon
         public string MultiAbuseEchoMention { get; set; } = string.Empty;
 
         [Category(TradeConfig), Description("Maximum amount of trades allowed using PB8 files, between 1 and 3.")]
-        public int MaximumAttachmentsAllowed { get => maxAttachments; set => maxAttachments = Math.Min(value, 3); }
+        public int MaximumAttachmentsAllowed { get => maxAttachments; set => maxAttachments = Math.Min(value, 10); }
 
         [Category(TradeConfig), Description("NIDs to disconnect from when detected.")]
         public RemoteControlAccessList NIDBlacklist { get; set; } = new() { AllowIfEmpty = false };

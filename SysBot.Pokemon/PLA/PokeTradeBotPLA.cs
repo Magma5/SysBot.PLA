@@ -321,7 +321,11 @@ namespace SysBot.Pokemon
                 var offset = await SwitchConnection.PointerAll(TradePartnerShowingPointer, token).ConfigureAwait(false);
                 var oldEC = await SwitchConnection.ReadBytesAbsoluteAsync(offset, 4, token).ConfigureAwait(false);
                 if (offered is null)
+                {
+                    Log("Offered pokemon is null LMAO");
                     return PokeTradeResult.TrainerTooSlow;
+                }
+
 
                 SpecialTradeType itemReq = SpecialTradeType.None;
                 if (poke.Type == PokeTradeType.Seed)
@@ -398,6 +402,8 @@ namespace SysBot.Pokemon
         {
             var oldPKData = await SwitchConnection.PointerPeek(BoxFormatSlotSize, BoxStartPokemonPointer, token).ConfigureAwait(false);
 
+            Log("Confirm and start trading");
+
             await Click(A, 3_000, token).ConfigureAwait(false);
             for (int i = 0; i < 14; i++)
             {
@@ -422,8 +428,14 @@ namespace SysBot.Pokemon
                 // We've somehow failed out of the Union Room -- can happen with connection error.
                 if (!await IsInBox(token).ConfigureAwait(false))
                     return PokeTradeResult.TrainerTooSlow;
+                }
+
                 if (tradeCounter >= Hub.Config.Trade.TradeAnimationMaxDelaySeconds)
+                {
+                    Log("TradeAnimationMaxDelaySeconds exceeded");
                     break;
+                }
+
             }
 
             // If we don't detect a B1S1 change, the trade didn't go through in that time.
@@ -451,7 +463,7 @@ namespace SysBot.Pokemon
                     return false;
 
                 await Task.Delay(1_200, token).ConfigureAwait(false);
-                if (!await IsKeyboardOpen(token))   
+                if (!await IsKeyboardOpen(token))
                     await Click(A, 0_300, token).ConfigureAwait(false);
             }
 

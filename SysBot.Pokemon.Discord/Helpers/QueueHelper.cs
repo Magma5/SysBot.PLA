@@ -11,8 +11,9 @@ namespace SysBot.Pokemon.Discord
     public static class QueueHelper<T> where T : PKM, new()
     {
         private const uint MaxTradeCode = 9999_9999;
+        private static TradeQueueInfo<T> Info => SysCord<T>.Runner.Hub.Queues.Info;
 
-        public static async Task AddToQueueAsync(SocketCommandContext context, int code, string trainer, RequestSignificance sig, T[] trade, PokeRoutineType routine, PokeTradeType type, SocketUser trader, bool InTradeID = false)
+        public static async Task AddToQueueAsync(SocketCommandContext context, int code, string trainer, RequestSignificance sig, T[] trade, PokeRoutineType routine, PokeTradeType type, SocketUser trader, bool InTradeID = false, bool isRandomCode = false)
         {
             if ((uint)code > MaxTradeCode)
             {
@@ -40,7 +41,13 @@ namespace SysBot.Pokemon.Discord
             // Notify in channel
             await context.Channel.SendMessageAsync(msg).ConfigureAwait(false);
             // Notify in PM to mirror what is said in the channel.
-            await trader.SendMessageAsync($"{msg}\nYour trade code will be **{code:0000 0000}**").ConfigureAwait(false);
+
+            var tradeCodeTip = "";
+            if (isRandomCode)
+            {
+                tradeCodeTip = $"\nNote: You can use an own trade code if you want, type in for example: `{Info.Hub.Config.Discord.CommandPrefix}trade {code:00000000}` next time.";
+            }
+            await trader.SendMessageAsync($"{msg}\nYour trade code will be **{code:0000 0000}**{tradeCodeTip}").ConfigureAwait(false);
 
             // Clean Up
             if (result)

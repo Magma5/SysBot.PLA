@@ -37,8 +37,12 @@ namespace SysBot.Pokemon.Discord
         [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
         public async Task TradeAsyncAttach([Summary("Trade Code")] int code)
         {
+            await TradeAsyncAttach(code, false).ConfigureAwait(false);
+        }
+
+        public async Task TradeAsyncAttach(int code, bool isRandomCode) {
             var sig = Context.User.GetFavor();
-            await TradeAsyncAttach(code, sig, Context.User).ConfigureAwait(false);
+            await TradeAsyncAttach(code, sig, Context.User, isRandomCode).ConfigureAwait(false);
         }
 
         [Command("trade")]
@@ -47,6 +51,10 @@ namespace SysBot.Pokemon.Discord
         [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
         public async Task TradeAsync([Summary("Trade Code")] int code, [Summary("Showdown Set")][Remainder] string content)
         {
+            await TradeAsync(code, content, false).ConfigureAwait(false);
+        }
+
+        public async Task TradeAsync(int code, string content, bool isRandomCode) {
             content = ReusableActions.StripCodeBlock(content);
             var set = new ShowdownSet(content);
             var template = AutoLegalityWrapper.GetTemplate(set);
@@ -76,7 +84,7 @@ namespace SysBot.Pokemon.Discord
                 pk.ResetPartyStats();
 
                 var sig = Context.User.GetFavor();
-                await AddTradeToQueueAsync(code, Context.User.Username, new T[] { pk }, sig, Context.User, false).ConfigureAwait(false);
+                await AddTradeToQueueAsync(code, Context.User.Username, new T[] { pk }, sig, Context.User, false, isRandomCode).ConfigureAwait(false);
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception e)
@@ -94,7 +102,7 @@ namespace SysBot.Pokemon.Discord
         public async Task TradeAsync([Summary("Showdown Set")][Remainder] string content)
         {
             var code = Info.GetRandomTradeCode();
-            await TradeAsync(code, content).ConfigureAwait(false);
+            await TradeAsync(code, content, true).ConfigureAwait(false);
         }
 
         [Command("trade")]
@@ -104,7 +112,7 @@ namespace SysBot.Pokemon.Discord
         public async Task TradeAsyncAttach()
         {
             var code = Info.GetRandomTradeCode();
-            await TradeAsyncAttach(code).ConfigureAwait(false);
+            await TradeAsyncAttach(code, true).ConfigureAwait(false);
         }
 
         [Command("request")]
@@ -162,7 +170,7 @@ namespace SysBot.Pokemon.Discord
 
             var usr = Context.Message.MentionedUsers.ElementAt(0);
             var sig = usr.GetFavor();
-            await TradeAsyncAttach(code, sig, usr).ConfigureAwait(false);
+            await TradeAsyncAttach(code, sig, usr, false).ConfigureAwait(false);
         }
 
         [Command("tradeUser")]
@@ -175,7 +183,7 @@ namespace SysBot.Pokemon.Discord
             await TradeAsyncAttachUser(code, _).ConfigureAwait(false);
         }
 
-        private async Task TradeAsyncAttach(int code, RequestSignificance sig, SocketUser usr)
+        private async Task TradeAsyncAttach(int code, RequestSignificance sig, SocketUser usr, bool isRandomCode)
         {
             var attachment = Context.Message.Attachments.FirstOrDefault();
             if (attachment == default)
@@ -184,7 +192,7 @@ namespace SysBot.Pokemon.Discord
                 return;
             }
 
-            if (Context.Message.Attachments.Count() > Info.Hub.Config.Trade.MaximumAttachmentsAllowed && sig != RequestSignificance.Owner)
+            if (Context.Message.Attachments.Count() > Info.Hub.Config.Trade.MaximumAttachmentsAllowed)
             {
                 await ReplyAsync($"{usr.Mention} - You are limited to {Info.Hub.Config.Trade.MaximumAttachmentsAllowed} per trade.").ConfigureAwait(false);
                 return;
@@ -203,7 +211,7 @@ namespace SysBot.Pokemon.Discord
                 attchList.Add(pk);
             }
 
-            await AddTradeToQueueAsync(code, usr.Username, attchList.ToArray(), sig, usr, false).ConfigureAwait(false);
+            await AddTradeToQueueAsync(code, usr.Username, attchList.ToArray(), sig, usr, false, isRandomCode).ConfigureAwait(false);
         }
 
         private static T? GetRequest(Download<PKM> dl)
@@ -218,7 +226,7 @@ namespace SysBot.Pokemon.Discord
             };
         }
 
-        private async Task AddTradeToQueueAsync(int code, string trainerName, T[] pks, RequestSignificance sig, SocketUser usr, bool InTradeID)
+        private async Task AddTradeToQueueAsync(int code, string trainerName, T[] pks, RequestSignificance sig, SocketUser usr, bool InTradeID, bool isRandomCode)
         {
             foreach (var pk in pks)
             {
@@ -236,7 +244,7 @@ namespace SysBot.Pokemon.Discord
                 }
             }
 
-            await QueueHelper<T>.AddToQueueAsync(Context, code, trainerName, sig, pks, PokeRoutineType.PLALinkTrade, PokeTradeType.Specific, usr, InTradeID).ConfigureAwait(false);
+            await QueueHelper<T>.AddToQueueAsync(Context, code, trainerName, sig, pks, PokeRoutineType.PLALinkTrade, PokeTradeType.Specific, usr, InTradeID, isRandomCode).ConfigureAwait(false);
         }
     }
 }
