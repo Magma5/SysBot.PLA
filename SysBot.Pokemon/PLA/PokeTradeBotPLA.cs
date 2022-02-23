@@ -428,7 +428,6 @@ namespace SysBot.Pokemon
                 // We've somehow failed out of the Union Room -- can happen with connection error.
                 if (!await IsInBox(token).ConfigureAwait(false))
                     return PokeTradeResult.TrainerTooSlow;
-                }
 
                 if (tradeCounter >= Hub.Config.Trade.TradeAnimationMaxDelaySeconds)
                 {

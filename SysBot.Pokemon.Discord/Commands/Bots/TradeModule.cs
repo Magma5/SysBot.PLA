@@ -130,7 +130,7 @@ namespace SysBot.Pokemon.Discord
             }
 
             var sig = Context.User.GetFavor();
-            await AddTradeToQueueAsync(code, Context.User.Username, new T[] { pkm }, sig, Context.User, true).ConfigureAwait(false);
+            await AddTradeToQueueAsync(code, Context.User.Username, new T[] { pkm }, sig, Context.User, true, false).ConfigureAwait(false);
         }
 
         [Command("request")]
